@@ -90,9 +90,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-
--- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = true
+-- Set to true if you have a Nerd Font installed and selected in the terminal
+vim.g.have_nerd_font = false
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -156,7 +155,7 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 15
+vim.opt.scrolloff = 10
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -709,11 +708,6 @@ require('lazy').setup({
     },
   },
 
-  { -- Ollama autocomplete
-    'tzachar/cmp-ai',
-    dependencies = 'nvim-lua/plenary.nvim',
-  },
-
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
@@ -749,57 +743,14 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
-
-      'tzachar/cmp-ai',
-
-      -- If you want to add a bunch of pre-configured snippets,
-      --    you can use this plugin to help you. It even has snippets
-      --    for various frameworks/libraries/etc. but you will have to
-      --    set up the ones that are useful for you.
-      -- 'rafamadriz/friendly-snippets',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
-      local cmp_ai = require 'cmp_ai.config'
-      local compare = require 'cmp.config.compare'
-
       luasnip.config.setup {}
 
-      cmp_ai:setup {
-        max_lines = 100,
-        provider = 'Ollama',
-        provider_options = {
-          model = 'codellama:7b-code',
-        },
-        notify = true,
-        notify_callback = function(msg)
-          vim.notify(msg)
-        end,
-        run_on_every_keystroke = false,
-        ignored_file_types = {
-          -- default is not to ignore
-          -- uncomment to ignore in lua:
-          -- lua = true
-        },
-      }
-
       cmp.setup {
-        sorting = {
-          priority_weight = 2,
-          comparators = {
-            require 'cmp_ai.compare',
-            compare.offset,
-            compare.exact,
-            compare.score,
-            compare.recently_used,
-            compare.kind,
-            compare.sort_text,
-            compare.length,
-            compare.order,
-          },
-        },
         snippet = {
           expand = function(args)
             luasnip.lsp_expand(args.body)
@@ -824,7 +775,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-i>'] = cmp.mapping.confirm { select = true },
+          ['<C-y>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -852,21 +803,12 @@ require('lazy').setup({
           end, { 'i', 's' }),
           ['<C-h>'] = cmp.mapping(function()
             if luasnip.locally_jumpable(-1) then
-              luasnip.jump(-2)
+              luasnip.jump(-1)
             end
           end, { 'i', 's' }),
+
           -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-          ['<C-x>'] = cmp.mapping(
-            cmp.mapping.complete {
-              config = {
-                sources = cmp.config.sources {
-                  { name = 'cmp_ai' },
-                },
-              },
-            },
-            { 'i' }
-          ),
         },
         sources = {
           {
@@ -877,7 +819,6 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
-          { name = 'cmp_ai' },
         },
       }
     end,
